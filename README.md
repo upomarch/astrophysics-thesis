@@ -117,19 +117,59 @@ Astropy’s convolution tools are used here because they handle NaN values grace
 After smoothing, each image is thresholded to isolate bright regions (dense clouds):
 
 ```python
-from skimage.measure import label
-from skimage.filters import threshold_otsu
+import matplotlib.pyplot as plt
 
-threshold_value = threshold_otsu(image)
-binary_mask = image > threshold_value
-labeled_clouds, count = label(binary_mask, return_num=True)
+# first image
+
+diff1 = img - astropy_conv8
+
+#print(diff1)
+
+fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(8, 8))
+plt.subplots_adjust(left=0.05, bottom=0.05, right=0.95, top=0.95,
+                    wspace=0.3, hspace=0.3)
+ax = ax.flatten()
+for axis in ax:
+    axis.axis('off')
+
+pct1 = np.percentile(diff1, [5, 95])
+# vmin = pct1[0]
+# vmax = pct1[1]
+
+im = ax[0].imshow(diff1, vmin=pct1[0], 
+                  vmax=pct1[1], origin='lower',
+                  interpolation='nearest', cmap='gray')
+ax[0].set_title("Difference: G1-G8")
+ax[0].set_xticklabels([])
+ax[0].set_yticklabels([])
+
+# second image
+
+diff2 = astropy_conv8 - astropy_conv24
+
+#print(diff2)
+
+pct2 = np.percentile(diff2, [5, 95])
+
+im = ax[1].imshow(diff2, vmin=pct2[0], vmax=pct2[1], origin='lower',
+                  interpolation='nearest', cmap='gray')
+ax[1].set_title("Difference: G8-G24")
+ax[1].set_xticklabels([])
+ax[1].set_yticklabels([])
+
+plt.tight_layout()
+plt.show()
 ```
+Blurry images are "subtracted" from less blurry images to expose bright spots. This is repeated for each blur level to observe how the number of clouds changes with scale. 
 
-* **`threshold_otsu`** automatically selects a brightness cutoff separating cloud regions from background noise.
-* **`label`** assigns a unique identifier to each contiguous bright region.
-* The total number of labels = the number of distinct “clouds.”
+<img width="790" height="592" alt="image" src="https://github.com/user-attachments/assets/ccb4b636-7e42-499f-94be-2468b233b2c9" />
 
-This is repeated for each blur level to observe how the number of clouds changes with scale.
+
+Additional code automatically counts the number of bright spots at different radii from the center of the galaxy.
+
+<img width="578" height="455" alt="image" src="https://github.com/user-attachments/assets/2799f797-3249-4a37-8113-def44ee49acc" />
+
+
 
 ---
 
